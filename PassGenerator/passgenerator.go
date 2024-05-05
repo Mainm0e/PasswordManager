@@ -1,7 +1,6 @@
-package main
+package PassGenerator
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -13,7 +12,7 @@ const (
 	symbols          = "!@#$&-_"
 )
 
-func generatePassword(length int) string {
+func GeneratePassword(length int) string {
 	// Initialize random seed
 	rand.Seed(time.Now().UnixNano())
 
@@ -29,10 +28,4 @@ func generatePassword(length int) string {
 	}
 
 	return string(password)
-}
-
-func main() {
-	// Generate a password of length 12
-	password := generatePassword(20)
-	fmt.Println("Generated Password:", password)
 }
