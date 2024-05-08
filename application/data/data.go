@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -21,6 +22,14 @@ func Data() {
 }
 
 func createDataBase() {
+	// Check if the database file exists
+	if _, err := os.Stat(dataBasePath); err == nil {
+		// Database file exists, no need to create new database or tables
+		return
+	} else if !os.IsNotExist(err) {
+		// Error occurred while checking for existence, log and exit
+		log.Fatal("Error checking database file existence:", err)
+	}
 	// Open a SQLite database connection
 	db, err := sql.Open("sqlite3", dataBasePath)
 	if err != nil {
@@ -83,5 +92,31 @@ func registerAccount(username string, password string) error {
 	return nil
 }
 func retrieveData() {
+
+	// Open a SQLite database connection
+	db, err := sql.Open("sqlite3", dataBasePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close() // Make sure to close the database connection when the function ends
+
+	// SQL statement to query the database
+	rows, err := db.Query("SELECT id, username, password FROM accounts")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	// Loop through the rows
+	for rows.Next() {
+		var id int
+		var username string
+		var password string
+		err = rows.Scan(&id, &username, &password)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(id, username, password)
+	}
 
 }
