@@ -6,7 +6,10 @@ import (
 
 func TestCreateDataBase(t *testing.T) {
 	// Create a database
-	createDataBase()
+	err := createDataBase()
+	if err != nil {
+		t.Error("Error creating database: ", err)
+	}
 	if !isDatabaseExit() {
 		t.Error("Error creating database")
 	}

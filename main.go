@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"passwordmanager/PassGenerator"
+	"passwordmanager/application/data"
 )
 
 func main() {
+	data.Data()
 	// Asking Usernames and Passwords
 	fmt.Println("Enter your username:")
 	var username string
