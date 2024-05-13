@@ -39,7 +39,7 @@ func createDataBase() {
 
 	// SQL statement to create the passwords table
 	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS accounts (
+	CREATE TABLE IF NOT EXISTS user (
 		id INTEGER PRIMARY KEY,
 		username TEXT,
 		password TEXT
@@ -51,21 +51,37 @@ func createDataBase() {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
 
-	// SQL statement to create the applications table
 	sqlStmtApplications := `
 	CREATE TABLE IF NOT EXISTS applications (
 		id INTEGER PRIMARY KEY,
-		account_id INTEGER,
-		application TEXT,
-		application_username TEXT,
-		application_password TEXT,
-		FOREIGN KEY(account_id) REFERENCES accounts(id)
+		user_id INTEGER,
+		name TEXT,
+		FOREIGN KEY(user_id) REFERENCES user(id)
 	);
 	`
 	// Execute the SQL statement to create the applications table
 	_, err = db.Exec(sqlStmtApplications)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlStmtApplications)
+	}
+
+	// SQL statement to create the applications table
+	sqlStmtData := `
+	CREATE TABLE IF NOT EXISTS data (
+		id INTEGER PRIMARY KEY,
+		user_id INTEGER,
+		application_id INTEGER,
+		username TEXT,
+		password TEXT,
+		order INTEGER,
+		FOREIGN KEY(user_id) REFERENCES user(id)
+		FOREIGN KEY(application_id) REFERENCES applications(id)
+	);
+	`
+	// Execute the SQL statement to create the applications table
+	_, err = db.Exec(sqlStmtData)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlStmtData)
 	}
 }
 
@@ -85,9 +101,9 @@ func registerAccount(username string, password string) error {
 	}
 	defer db.Close() // Make sure to close the database connection when the function ends
 
-	// SQL statement to insert data into the accounts table
+	// SQL statement to insert data into the user table
 	sqlStmt := `
-	INSERT INTO accounts (username, password) VALUES (?, ?)
+	INSERT INTO user (username, password) VALUES (?, ?)
 	`
 	// Execute the SQL statement
 	_, err = db.Exec(sqlStmt, username, password)
@@ -109,7 +125,7 @@ func retrieveData() {
 	defer db.Close() // Make sure to close the database connection when the function ends
 
 	// SQL statement to query the database
-	rows, err := db.Query("SELECT id, username, password FROM accounts")
+	rows, err := db.Query("SELECT id, username, password FROM user")
 	if err != nil {
 		log.Fatal(err)
 	}
