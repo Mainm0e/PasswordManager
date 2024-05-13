@@ -4,11 +4,15 @@ import (
 	"testing"
 )
 
-func TestData(t *testing.T) {
+func TestCreateDataBase(t *testing.T) {
 	// Create a database
 	createDataBase()
+	if !isDatabaseExit() {
+		t.Error("Error creating database")
+	}
+}
 
-	// check if the database is created
+func TestTryInsertAccount(t *testing.T) {
 
 	// try to insert data into the database
 	err := registerAccount("exampleUsername10", "examplePassword10")

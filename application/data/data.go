@@ -70,6 +70,13 @@ func createDataBase() {
 }
 
 func registerAccount(username string, password string) error {
+
+	password = hashing(password)
+
+	if !isDatabaseExit() {
+		createDataBase()
+	}
+
 	// Open a SQLite database connection
 	db, err := sql.Open("sqlite3", dataBasePath)
 	if err != nil {
@@ -91,6 +98,7 @@ func registerAccount(username string, password string) error {
 
 	return nil
 }
+
 func retrieveData() {
 
 	// Open a SQLite database connection
@@ -119,4 +127,14 @@ func retrieveData() {
 		log.Println(id, username, password)
 	}
 
+}
+
+func isDatabaseExit() bool {
+	// Check if the database file exists
+	if _, err := os.Stat(dataBasePath); err == nil {
+		// Database file exists
+		return true
+	}
+
+	return false
 }
