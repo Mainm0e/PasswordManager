@@ -13,16 +13,7 @@ var (
 	dataBasePath = "./accounts.db"
 )
 
-func Data() {
-	// Create a database
-	createDataBase()
-	// Insert data into the database
-	registerAccount("exampleUsername", "examplePassword")
-	// Retrieve data from the database
-	retrieveData()
-}
-
-func createDataBase() error {
+func CreateDataBase() error {
 	// Check if the database file exists
 	if _, err := os.Stat(dataBasePath); err == nil {
 		// Database file exists, no need to create new database or tables
@@ -94,34 +85,93 @@ func createDataBase() error {
 	return nil
 }
 
-func registerAccount(username string, password string) error {
-
+func RegisterAccount(username string, password string) error {
+	// Hash the password
 	password = hashing(password)
 
-	if !isDatabaseExit() {
-		createDataBase()
+	// Check if the database exists
+	if !IsDatabaseExit() {
+		return fmt.Errorf("database does not exist")
 	}
 
 	// Open a SQLite database connection
 	db, err := sql.Open("sqlite3", dataBasePath)
 	if err != nil {
-		log.Fatal(err)
-		return err
+		return fmt.Errorf("error opening database connection: %w", err)
 	}
 	defer db.Close() // Make sure to close the database connection when the function ends
 
+	// Check if the username already exists
+	rows, err := db.Query("SELECT id FROM users WHERE username = ?", username)
+	if err != nil {
+		return fmt.Errorf("error querying database: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		return fmt.Errorf("username already exists")
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("error iterating over query results: %w", err)
+	}
+
 	// SQL statement to insert data into the user table
 	sqlStmt := `
-	INSERT INTO users (username, password) VALUES (?, ?)
-	`
+    INSERT INTO users (username, password) VALUES (?, ?)
+    `
 	// Execute the SQL statement
 	_, err = db.Exec(sqlStmt, username, password)
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
-		return err
+		return fmt.Errorf("error executing SQL statement: %w", err)
 	}
 
 	return nil
+}
+
+func Login(username string, password string) (string, error) {
+	// Hash the provided password
+	hashedPassword := hashing(password)
+
+	// Check if the database exists
+	if !IsDatabaseExit() {
+		return "", fmt.Errorf("database does not exist")
+	}
+
+	// Open a SQLite database connection
+	db, err := sql.Open("sqlite3", dataBasePath)
+	if err != nil {
+		return "", fmt.Errorf("error opening database connection: %w", err)
+	}
+	defer db.Close() // Make sure to close the database connection when the function ends
+
+	// SQL statement to query the database
+	rows, err := db.Query("SELECT id, username, password FROM users WHERE username = ?", username)
+	if err != nil {
+		return "", fmt.Errorf("error querying database: %w", err)
+	}
+	defer rows.Close()
+
+	// Check if any rows were returned
+	if !rows.Next() {
+		return "", fmt.Errorf("invalid username or password")
+	}
+
+	// If rows were returned, retrieve the hashed password from the database
+	var id string
+	var storedUsername string
+	var storedPassword string
+	if err := rows.Scan(&id, &storedUsername, &storedPassword); err != nil {
+		return "", fmt.Errorf("error scanning row: %w", err)
+	}
+
+	// Compare the hashed password from the database with the hashed provided password
+	if storedPassword != hashedPassword {
+		return "", fmt.Errorf("invalid username or password")
+	}
+
+	// If the passwords match, the user is authenticated
+	// You can return additional information about the user if needed
+	return id, nil
 }
 
 func retrieveData() {
@@ -154,7 +204,7 @@ func retrieveData() {
 
 }
 
-func isDatabaseExit() bool {
+func IsDatabaseExit() bool {
 	// Check if the database file exists
 	if _, err := os.Stat(dataBasePath); err == nil {
 		// Database file exists

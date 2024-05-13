@@ -2,12 +2,20 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"passwordmanager/PassGenerator"
 	"passwordmanager/application/data"
 )
 
 func main() {
-	data.Data()
+	if !data.IsDatabaseExit() {
+		err := data.CreateDataBase()
+		if err != nil {
+			fmt.Println("Error creating database: ", err)
+			os.Exit(1)
+		}
+	}
+
 	// Asking Usernames and Passwords
 	fmt.Println("Enter your username:")
 	var username string
