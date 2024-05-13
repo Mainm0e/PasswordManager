@@ -5,31 +5,36 @@ import (
 	"testing"
 )
 
+var (
+	// Test database path
+	testDataBasePath = "./test.db"
+)
+
 func TestCreateDataBase(t *testing.T) {
-	err := CreateDataBase()
+	err := CreateDataBase(testDataBasePath)
 	if err != nil {
 		t.Error("Error creating database: ", err)
 	}
 }
 
 func TestRegisterAccount(t *testing.T) {
-	err := RegisterAccount("exampleUsername10", "examplePassword10")
+	err := RegisterAccount(testDataBasePath, "exampleUsername10", "examplePassword10")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = RegisterAccount("exampleUsername11", "examplePassword11")
+	err = RegisterAccount(testDataBasePath, "exampleUsername11", "examplePassword11")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = RegisterAccount("exampleUsername12", "examplePassword13")
+	err = RegisterAccount(testDataBasePath, "exampleUsername12", "examplePassword13")
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Test for duplicate username
-	err = RegisterAccount("exampleUsername10", "examplePassword10")
+	err = RegisterAccount(testDataBasePath, "exampleUsername10", "examplePassword10")
 	if err == nil {
 		t.Error("Expected error for duplicate username")
 	}
@@ -37,38 +42,92 @@ func TestRegisterAccount(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	// Test successful logins
-	_, err := Login("exampleUsername10", "examplePassword10")
+	_, err := Login(testDataBasePath, "exampleUsername10", "examplePassword10")
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = Login("exampleUsername11", "examplePassword11")
+	_, err = Login(testDataBasePath, "exampleUsername11", "examplePassword11")
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = Login("exampleUsername12", "examplePassword13")
+	_, err = Login(testDataBasePath, "exampleUsername12", "examplePassword13")
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Test for non-existing username
-	_, err = Login("exampleUsername13", "examplePassword13")
+	_, err = Login(testDataBasePath, "exampleUsername13", "examplePassword13")
 	if err == nil {
 		t.Error("Expected error for non-existing username")
 	}
 
 	// Test for incorrect password
-	_, err = Login("exampleUsername10", "examplePassword11")
+	_, err = Login(testDataBasePath, "exampleUsername10", "examplePassword11")
 	if err == nil {
 		t.Error("Expected error for incorrect password")
 	}
 }
 
+func TestAddApplication(t *testing.T) {
+	// Test successful application addition
+	err := AddApplication(testDataBasePath, "1", "exampleApp1", "exampleURL1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = AddApplication(testDataBasePath, "2", "exampleApp2", "exampleURL2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = AddApplication(testDataBasePath, "2", "exampleApp3", "exampleURL3")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Test for non-existing username
+	err = AddApplication(testDataBasePath, "5", "exampleApp4", "exampleURL4")
+	if err == nil {
+		t.Error("Expected error for non-existing username")
+	}
+}
+
+func TestAddApplicationData(t *testing.T) {
+	// Test successful application data addition
+	err := AddApplicationData(testDataBasePath, "1", "1", "exampleUsername1", "examplePassword1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = AddApplicationData(testDataBasePath, "1", "2", "exampleUsername2", "examplePassword2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = AddApplicationData(testDataBasePath, "2", "3", "exampleUsername3", "examplePassword3")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// test adding data for an existing application
+	err = AddApplicationData(testDataBasePath, "1", "1", "exampleUsername4", "examplePassword4")
+	if err != nil {
+		t.Error("Expected error for existing application")
+	}
+
+	// Test for non-existing username
+	err = AddApplicationData(testDataBasePath, "5", "4", "exampleUsername4", "examplePassword4")
+	if err == nil {
+		t.Error("Expected error for non-existing username")
+	}
+}
+
 func TestDatabaseExistence(t *testing.T) {
-	if IsDatabaseExit() {
+	if IsDatabaseExit(testDataBasePath) {
 		t.Log("Database exists")
-		cmd := exec.Command("rm", "./accounts.db")
+		cmd := exec.Command("rm", testDataBasePath)
 		err := cmd.Run()
 		if err != nil {
 			t.Error("Error removing database: ", err)

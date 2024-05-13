@@ -3,17 +3,12 @@ package data
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	dataBasePath = "./accounts.db"
-)
-
-func CreateDataBase() error {
+func CreateDataBase(dataBasePath string) error {
 	// Check if the database file exists
 	if _, err := os.Stat(dataBasePath); err == nil {
 		// Database file exists, no need to create new database or tables
@@ -49,11 +44,11 @@ func CreateDataBase() error {
 	sqlStmtApplications := `
     CREATE TABLE IF NOT EXISTS applications (
         id INTEGER PRIMARY KEY,
-		user_id INTEGER,
-		account_count INTEGER,
+        user_id INTEGER,
+        account_count INTEGER,
         name TEXT,
-		url TEXT,
-		FOREIGN KEY(user_id) REFERENCES users(id)
+        url TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id)
     );
     `
 	// Execute the SQL statement to create the applications table
@@ -65,16 +60,16 @@ func CreateDataBase() error {
 
 	// SQL statement to create the applicationdata table
 	sqlStmtApplicationData := `
-	CREATE TABLE IF NOT EXISTS applicationdata (
-		id INTEGER PRIMARY KEY,
-		user_id INTEGER,
-		application_id INTEGER,
-		username TEXT,
-		password TEXT,
-		FOREIGN KEY(user_id) REFERENCES users(id),
-		FOREIGN KEY(application_id) REFERENCES applications(id)
-	);
-	`
+    CREATE TABLE IF NOT EXISTS applicationdata (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER,
+        application_id INTEGER,
+        username TEXT,
+        password TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id),
+        FOREIGN KEY(application_id) REFERENCES applications(id)
+    );
+    `
 	// Execute the SQL statement to create the applicationdata table
 	_, err = db.Exec(sqlStmtApplicationData)
 	if err != nil {
@@ -85,12 +80,12 @@ func CreateDataBase() error {
 	return nil
 }
 
-func RegisterAccount(username string, password string) error {
+func RegisterAccount(dataBasePath, username, password string) error {
 	// Hash the password
 	password = hashing(password)
 
 	// Check if the database exists
-	if !IsDatabaseExit() {
+	if !IsDatabaseExit(dataBasePath) {
 		return fmt.Errorf("database does not exist")
 	}
 
@@ -128,12 +123,12 @@ func RegisterAccount(username string, password string) error {
 	return nil
 }
 
-func Login(username string, password string) (string, error) {
+func Login(dataBasePath, username, password string) (string, error) {
 	// Hash the provided password
 	hashedPassword := hashing(password)
 
 	// Check if the database exists
-	if !IsDatabaseExit() {
+	if !IsDatabaseExit(dataBasePath) {
 		return "", fmt.Errorf("database does not exist")
 	}
 
@@ -174,37 +169,106 @@ func Login(username string, password string) (string, error) {
 	return id, nil
 }
 
-func retrieveData() {
+func AddApplication(dataBasePath, userId, name, url string) error {
+	// Check if the database exists
+	if !IsDatabaseExit(dataBasePath) {
+		return fmt.Errorf("database does not exist")
+	}
 
 	// Open a SQLite database connection
 	db, err := sql.Open("sqlite3", dataBasePath)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error opening database connection: %w", err)
 	}
 	defer db.Close() // Make sure to close the database connection when the function ends
 
-	// SQL statement to query the database
-	rows, err := db.Query("SELECT id, username, password FROM users")
+	// Check if the user with the provided userId exists
+	var userCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error querying database: %w", err)
 	}
-	defer rows.Close()
+	if userCount == 0 {
+		return fmt.Errorf("user with the provided ID does not exist")
+	}
 
-	// Loop through the rows
-	for rows.Next() {
-		var id int
-		var username string
-		var password string
-		err = rows.Scan(&id, &username, &password)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(id, username, password)
+	// Check if an application with the same name already exists for the user
+	var appCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM applications WHERE user_id = ? AND name = ?", userId, name).Scan(&appCount)
+	if err != nil {
+		return fmt.Errorf("error querying database: %w", err)
 	}
+	if appCount > 0 {
+		return fmt.Errorf("an application with the same name already exists for the user")
+	}
+
+	// SQL statement to insert data into the applications table
+	sqlStmt := `
+    INSERT INTO applications (user_id, account_count, name, url) VALUES (?, ?, ?, ?)
+    `
+	// Execute the SQL statement
+	_, err = db.Exec(sqlStmt, userId, 0, name, url)
+	if err != nil {
+		return fmt.Errorf("error executing SQL statement: %w", err)
+	}
+
+	return nil
+}
+
+func AddApplicationData(dataBasePath, userId, applicationId, username, password string) error {
+	// Check if the database exists
+	if !IsDatabaseExit(dataBasePath) {
+		return fmt.Errorf("database does not exist")
+	}
+
+	// Open a SQLite database connection
+	db, err := sql.Open("sqlite3", dataBasePath)
+	if err != nil {
+		return fmt.Errorf("error opening database connection: %w", err)
+	}
+	defer db.Close() // Make sure to close the database connection when the function ends
+
+	// Check if the user with the provided userId exists
+	var userCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
+	if err != nil {
+		return fmt.Errorf("error querying database: %w", err)
+	}
+	if userCount == 0 {
+		return fmt.Errorf("user with the provided ID does not exist")
+	}
+
+	// Check if the application with the provided applicationId exists
+	var appCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM applications WHERE id = ?", applicationId).Scan(&appCount)
+	if err != nil {
+		return fmt.Errorf("error querying database: %w", err)
+	}
+	if appCount == 0 {
+		return fmt.Errorf("application with the provided ID does not exist")
+	}
+
+	// SQL statement to insert data into the applicationdata table
+	sqlStmt := `
+	INSERT INTO applicationdata (user_id, application_id, username, password) VALUES (?, ?, ?, ?)
+	`
+	// Execute the SQL statement
+	_, err = db.Exec(sqlStmt, userId, applicationId, username, password)
+	if err != nil {
+		return fmt.Errorf("error executing SQL statement: %w", err)
+	}
+
+	// Update the account_count for the application
+	_, err = db.Exec("UPDATE applications SET account_count = account_count + 1 WHERE id = ?", applicationId)
+	if err != nil {
+		return fmt.Errorf("error updating account count: %w", err)
+	}
+
+	return nil
 
 }
 
-func IsDatabaseExit() bool {
+func IsDatabaseExit(dataBasePath string) bool {
 	// Check if the database file exists
 	if _, err := os.Stat(dataBasePath); err == nil {
 		// Database file exists
