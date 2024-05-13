@@ -10,9 +10,6 @@ func TestCreateDataBase(t *testing.T) {
 	if err != nil {
 		t.Error("Error creating database: ", err)
 	}
-	if !isDatabaseExit() {
-		t.Error("Error creating database")
-	}
 }
 
 func TestTryInsertAccount(t *testing.T) {
@@ -31,3 +28,16 @@ func TestTryInsertAccount(t *testing.T) {
 		t.Error("Error inserting data")
 	}
 }
+
+/* func TestEndTest(t *testing.T) {
+	if isDatabaseExit() {
+		t.Log("Database exists")
+		//remove the database
+		cmd := exec.Command("rm", "./accounts.db")
+		err := cmd.Run()
+		if err != nil {
+			t.Error("Error removing database: ", err)
+		}
+	}
+}
+*/

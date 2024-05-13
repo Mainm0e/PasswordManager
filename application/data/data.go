@@ -59,7 +59,7 @@ func createDataBase() error {
     CREATE TABLE IF NOT EXISTS applications (
         id INTEGER PRIMARY KEY,
 		user_id INTEGER,
-		index INTEGER,
+		account_count INTEGER,
         name TEXT,
 		url TEXT,
 		FOREIGN KEY(user_id) REFERENCES users(id)
@@ -72,21 +72,20 @@ func createDataBase() error {
 	}
 	fmt.Println("Created applications table")
 
-	// SQL statement to create the accountdata table
-	sqlStmtAccountdata := `
-	CREATE TABLE IF NOT EXISTS accountdata (
+	// SQL statement to create the applicationdata table
+	sqlStmtApplicationData := `
+	CREATE TABLE IF NOT EXISTS applicationdata (
 		id INTEGER PRIMARY KEY,
-		application_id INTEGER,
 		user_id INTEGER,
+		application_id INTEGER,
 		username TEXT,
 		password TEXT,
-		date_created TEXT,
 		FOREIGN KEY(user_id) REFERENCES users(id),
 		FOREIGN KEY(application_id) REFERENCES applications(id)
 	);
 	`
 	// Execute the SQL statement to create the applicationdata table
-	_, err = db.Exec(sqlStmtAccountdata)
+	_, err = db.Exec(sqlStmtApplicationData)
 	if err != nil {
 		return fmt.Errorf("error creating applicationdata table: %w", err)
 	}
