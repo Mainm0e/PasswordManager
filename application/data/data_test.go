@@ -1,6 +1,7 @@
 package data
 
 import (
+	"os/exec"
 	"testing"
 )
 
@@ -27,9 +28,7 @@ func TestTryInsertAccount(t *testing.T) {
 	if err != nil {
 		t.Error("Error inserting data")
 	}
-}
 
-/* func TestEndTest(t *testing.T) {
 	if isDatabaseExit() {
 		t.Log("Database exists")
 		//remove the database
@@ -38,6 +37,7 @@ func TestTryInsertAccount(t *testing.T) {
 		if err != nil {
 			t.Error("Error removing database: ", err)
 		}
+	} else {
+		t.Error("Database does not exist")
 	}
 }
-*/
