@@ -99,21 +99,24 @@ func CreateDataBase(dataBasePath string) error {
 	return nil
 }
 
-func RegisterAccount(dataBasePath, username, password string) error {
-	// Hash the password
-	password = hashing(password)
-
+func OpenDatabaseConnection(dataBasePath string) (*sql.DB, error) {
 	// Check if the database exists
 	if !IsDatabaseExit(dataBasePath) {
-		return fmt.Errorf("database does not exist")
+		return nil, fmt.Errorf("database does not exist")
 	}
 
 	// Open a SQLite database connection
 	db, err := sql.Open("sqlite3", dataBasePath)
 	if err != nil {
-		return fmt.Errorf("error opening database connection: %w", err)
+		return nil, fmt.Errorf("error opening database connection: %w", err)
 	}
-	defer db.Close() // Make sure to close the database connection when the function ends
+
+	return db, nil
+}
+
+func RegisterAccount(db *sql.DB, username, password string) error {
+	// Hash the password
+	password = hashing(password)
 
 	// Check if the username already exists
 	rows, err := db.Query("SELECT id FROM users WHERE username = ?", username)
@@ -142,21 +145,9 @@ func RegisterAccount(dataBasePath, username, password string) error {
 	return nil
 }
 
-func Login(dataBasePath, username, password string) (string, error) {
+func Login(db *sql.DB, username, password string) (string, error) {
 	// Hash the provided password
 	hashedPassword := hashing(password)
-
-	// Check if the database exists
-	if !IsDatabaseExit(dataBasePath) {
-		return "", fmt.Errorf("database does not exist")
-	}
-
-	// Open a SQLite database connection
-	db, err := sql.Open("sqlite3", dataBasePath)
-	if err != nil {
-		return "", fmt.Errorf("error opening database connection: %w", err)
-	}
-	defer db.Close() // Make sure to close the database connection when the function ends
 
 	// SQL statement to query the database
 	rows, err := db.Query("SELECT id, username, password FROM users WHERE username = ?", username)
@@ -188,22 +179,11 @@ func Login(dataBasePath, username, password string) (string, error) {
 	return id, nil
 }
 
-func AddApplication(dataBasePath, userId, name, url string) error {
-	// Check if the database exists
-	if !IsDatabaseExit(dataBasePath) {
-		return fmt.Errorf("database does not exist")
-	}
-
-	// Open a SQLite database connection
-	db, err := sql.Open("sqlite3", dataBasePath)
-	if err != nil {
-		return fmt.Errorf("error opening database connection: %w", err)
-	}
-	defer db.Close() // Make sure to close the database connection when the function ends
+func AddApplication(db *sql.DB, userId, name, url string) error {
 
 	// Check if the user with the provided userId exists
 	var userCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
 	if err != nil {
 		return fmt.Errorf("error querying database: %w", err)
 	}
@@ -234,22 +214,11 @@ func AddApplication(dataBasePath, userId, name, url string) error {
 	return nil
 }
 
-func AddApplicationData(dataBasePath, userId, applicationId, username, password string) error {
-	// Check if the database exists
-	if !IsDatabaseExit(dataBasePath) {
-		return fmt.Errorf("database does not exist")
-	}
-
-	// Open a SQLite database connection
-	db, err := sql.Open("sqlite3", dataBasePath)
-	if err != nil {
-		return fmt.Errorf("error opening database connection: %w", err)
-	}
-	defer db.Close() // Make sure to close the database connection when the function ends
+func AddApplicationData(db *sql.DB, userId, applicationId, username, password string) error {
 
 	// Check if the user with the provided userId exists
 	var userCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
 	if err != nil {
 		return fmt.Errorf("error querying database: %w", err)
 	}
@@ -287,22 +256,11 @@ func AddApplicationData(dataBasePath, userId, applicationId, username, password 
 
 }
 
-func GetApplications(dataBasePath, userId string) ([]Application, error) {
-	// Check if the database exists
-	if !IsDatabaseExit(dataBasePath) {
-		return nil, fmt.Errorf("database does not exist")
-	}
-
-	// Open a SQLite database connection
-	db, err := sql.Open("sqlite3", dataBasePath)
-	if err != nil {
-		return nil, fmt.Errorf("error opening database connection: %w", err)
-	}
-	defer db.Close() // Make sure to close the database connection when the function ends
+func GetApplications(db *sql.DB, userId string) ([]Application, error) {
 
 	// Check if the user with the provided userId exists
 	var userCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
 	if err != nil {
 		return nil, fmt.Errorf("error querying database: %w", err)
 	}
@@ -331,23 +289,11 @@ func GetApplications(dataBasePath, userId string) ([]Application, error) {
 	return applications, nil
 }
 
-func GetApplicationData(dataBasePath, userId, ApplicationId string) ([]ApplicationData, error) {
-
-	// Check if the database exists
-	if !IsDatabaseExit(dataBasePath) {
-		return nil, fmt.Errorf("database does not exist")
-	}
-
-	// Open a SQLite database connection
-	db, err := sql.Open("sqlite3", dataBasePath)
-	if err != nil {
-		return nil, fmt.Errorf("error opening database connection: %w", err)
-	}
-	defer db.Close() // Make sure to close the database connection when the function ends
+func GetApplicationData(db *sql.DB, userId, ApplicationId string) ([]ApplicationData, error) {
 
 	// Check if the user with the provided userId exists
 	var userCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
 	if err != nil {
 		return nil, fmt.Errorf("error querying database: %w", err)
 	}
