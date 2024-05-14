@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+// Todo: Encrypt new Passwords before saving them to the database
+// Key: 16 bytes long and Key is generated based on the user's hashed password
 func AddNewPassword(db *sql.DB, user_id string) {
 	var applicationName, applicationURL, username string
 	var passwordLength int
