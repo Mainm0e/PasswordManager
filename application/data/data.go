@@ -287,7 +287,6 @@ func AddApplicationData(dataBasePath, userId, applicationId, username, password 
 
 }
 
-// GetApplications retrieves the list of applications for a user
 func GetApplications(dataBasePath, userId string) ([]Application, error) {
 	// Check if the database exists
 	if !IsDatabaseExit(dataBasePath) {
