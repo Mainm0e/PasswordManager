@@ -317,7 +317,7 @@ func GetApplications(dataBasePath, userId string) ([]Application, error) {
 	}
 	defer rows.Close()
 
-	var applications []Application // Assuming Application is a struct representing an application with fields ID, Name, and URL
+	var applications []Application // Slice to store the applications
 	for rows.Next() {
 		var app Application
 		var id string
