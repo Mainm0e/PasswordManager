@@ -84,23 +84,23 @@ func TestAddApplication(t *testing.T) {
 		t.Error(err)
 	}
 	// Test successful application addition
-	err = AddApplication(db, "1", "exampleApp1", "exampleURL1")
+	_, err = AddApplication(db, "1", "exampleApp1", "exampleURL1")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = AddApplication(db, "2", "exampleApp2", "exampleURL2")
+	_, err = AddApplication(db, "2", "exampleApp2", "exampleURL2")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = AddApplication(db, "2", "exampleApp3", "exampleURL3")
+	_, err = AddApplication(db, "2", "exampleApp3", "exampleURL3")
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Test for non-existing username
-	err = AddApplication(db, "5", "exampleApp4", "exampleURL4")
+	_, err = AddApplication(db, "5", "exampleApp4", "exampleURL4")
 	if err == nil {
 		t.Error("Expected error for non-existing username")
 	}

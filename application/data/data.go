@@ -179,26 +179,25 @@ func Login(db *sql.DB, username, password string) (string, error) {
 	return id, nil
 }
 
-func AddApplication(db *sql.DB, userId, name, url string) error {
-
+func AddApplication(db *sql.DB, userId, name, url string) (int, error) {
 	// Check if the user with the provided userId exists
 	var userCount int
 	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", userId).Scan(&userCount)
 	if err != nil {
-		return fmt.Errorf("error querying database: %w", err)
+		return 0, fmt.Errorf("error querying database: %w", err)
 	}
 	if userCount == 0 {
-		return fmt.Errorf("user with the provided ID does not exist")
+		return 0, fmt.Errorf("user with the provided ID does not exist")
 	}
 
 	// Check if an application with the same name already exists for the user
 	var appCount int
 	err = db.QueryRow("SELECT COUNT(*) FROM applications WHERE user_id = ? AND name = ?", userId, name).Scan(&appCount)
 	if err != nil {
-		return fmt.Errorf("error querying database: %w", err)
+		return 0, fmt.Errorf("error querying database: %w", err)
 	}
 	if appCount > 0 {
-		return fmt.Errorf("an application with the same name already exists for the user")
+		return 0, fmt.Errorf("an application with the same name already exists for the user")
 	}
 
 	// SQL statement to insert data into the applications table
@@ -206,12 +205,18 @@ func AddApplication(db *sql.DB, userId, name, url string) error {
     INSERT INTO applications (user_id, account_count, name, url) VALUES (?, ?, ?, ?)
     `
 	// Execute the SQL statement
-	_, err = db.Exec(sqlStmt, userId, 0, name, url)
+	res, err := db.Exec(sqlStmt, userId, 0, name, url)
 	if err != nil {
-		return fmt.Errorf("error executing SQL statement: %w", err)
+		return 0, fmt.Errorf("error executing SQL statement: %w", err)
 	}
 
-	return nil
+	// Retrieve the last inserted ID
+	lastInsertID, err := res.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("error retrieving last inserted ID: %w", err)
+	}
+
+	return int(lastInsertID), nil
 }
 
 func AddApplicationData(db *sql.DB, userId, applicationId, username, password string) error {
@@ -269,7 +274,7 @@ func GetApplications(db *sql.DB, userId string) ([]Application, error) {
 	}
 
 	// SQL statement to retrieve the list of applications for the user
-	rows, err := db.Query("SELECT name, url, account_count FROM applications WHERE user_id = ?", userId)
+	rows, err := db.Query("SELECT id ,name, url FROM applications WHERE user_id = ?", userId)
 	if err != nil {
 		return nil, fmt.Errorf("error querying database: %w", err)
 	}

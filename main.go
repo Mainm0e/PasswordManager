@@ -2,19 +2,15 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"passwordmanager/PassGenerator"
+	"log"
+	"passwordmanager/application"
 	"passwordmanager/application/data"
 )
 
 func main() {
-	dataPath := "./data.db"
-	if !data.IsDatabaseExit(dataPath) {
-		err := data.CreateDataBase(dataPath)
-		if err != nil {
-			fmt.Println("Error creating database: ", err)
-			os.Exit(1)
-		}
+	db, err := data.OpenDatabaseConnection("passwordmanager.db")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Asking Usernames and Passwords
@@ -26,30 +22,47 @@ func main() {
 	var password string
 	fmt.Scanln(&password)
 
-	// Now you can do something with the username and password entered by the user
-	// For now, let's just print them
-	fmt.Println("Username:", username)
-	fmt.Println("Password:", password)
+	user_id, err := data.Login(db, username, password)
 
-	fmt.Println("Do you want to generate a password? (y/n)")
-	var choice string
-	fmt.Scanln(&choice)
-
-	if choice == "y" {
-		// Generate a password of length 12
-		password := PassGenerator.GeneratePassword(12)
-		fmt.Println("Generated Password:", password)
-		fmt.Println("Press Ctrl+C to exit")
-		for {
-		}
-	} else {
-		fmt.Println("Are you looking for your password? (y/n)")
+	if err != nil {
+		fmt.Println("Login failed:", err)
+		fmt.Println("Would you like to register a new account? (y/n)")
 		var choice string
 		fmt.Scanln(&choice)
 		if choice == "y" {
-			fmt.Println("Sorry, I can't help you with that.")
+			fmt.Println("Enter your new username:")
+			var new_username string
+			fmt.Scanln(&new_username)
+
+			fmt.Println("Enter your new password:")
+			var new_password string
+			fmt.Scanln(&new_password)
+
+			err := data.RegisterAccount(db, new_username, new_password)
+			if err != nil {
+				fmt.Println("Account registration failed:", err)
+				return
+			}
+			fmt.Println("Account registered successfully!")
+			user_id, err = data.Login(db, new_username, new_password)
+			if err != nil {
+				fmt.Println("Login failed:", err)
+				return
+			}
 		} else {
 			fmt.Println("Goodbye!")
+			return
 		}
+	}
+	fmt.Println("Welcome", username, "!")
+
+	fmt.Println("Do you want to add a new Password or read your Passwords? (add/read)")
+	var choice string
+	fmt.Scanln(&choice)
+
+	if choice == "add" {
+		application.AddNewPassword(db, user_id)
+	}
+	if choice == "read" {
 	}
 }
