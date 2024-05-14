@@ -16,7 +16,6 @@ func TestCreateDataBase(t *testing.T) {
 		t.Error("Error creating database: ", err)
 	}
 }
-
 func TestRegisterAccount(t *testing.T) {
 	err := RegisterAccount(testDataBasePath, "exampleUsername10", "examplePassword10")
 	if err != nil {
@@ -121,6 +120,66 @@ func TestAddApplicationData(t *testing.T) {
 	err = AddApplicationData(testDataBasePath, "5", "4", "exampleUsername4", "examplePassword4")
 	if err == nil {
 		t.Error("Expected error for non-existing username")
+	}
+}
+
+// test getting datas
+func TestGetApplications(t *testing.T) {
+	apps, err := GetApplications(testDataBasePath, "1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(apps) != 1 {
+		t.Error("Expected 1 application, got ", len(apps))
+	}
+
+	apps, err = GetApplications(testDataBasePath, "2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(apps) != 2 {
+		t.Error("Expected 2 applications, got ", len(apps))
+	}
+
+	apps, err = GetApplications(testDataBasePath, "3")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(apps) != 0 {
+		t.Error("Expected 0 applications, got ", len(apps))
+	}
+}
+
+func TestGetApplicationData(t *testing.T) {
+
+	data, err := GetApplicationData(testDataBasePath, "1", "2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(data) != 1 {
+		t.Error("Expected 1 data, got ", len(data))
+	}
+
+	data, err = GetApplicationData(testDataBasePath, "2", "3")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(data) != 1 {
+		t.Error("Expected 1 data, got ", len(data))
+	}
+
+	data, err = GetApplicationData(testDataBasePath, "3", "4")
+	if err == nil {
+		t.Error("Expected error for non-existing application")
+	}
+
+	if len(data) != 0 {
+		t.Error("Expected 0 data, got ", len(data))
 	}
 }
 

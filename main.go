@@ -8,8 +8,9 @@ import (
 )
 
 func main() {
-	if !data.IsDatabaseExit() {
-		err := data.CreateDataBase()
+	dataPath := "./data.db"
+	if !data.IsDatabaseExit(dataPath) {
+		err := data.CreateDataBase(dataPath)
 		if err != nil {
 			fmt.Println("Error creating database: ", err)
 			os.Exit(1)
