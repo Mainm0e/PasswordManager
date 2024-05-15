@@ -120,3 +120,40 @@ func getIntInput(prompt string) int {
 	}
 	return num
 }
+
+// GetApplicationData is function that user can read application account data from database
+func ReadPasswords(db *sql.DB, user_id string) {
+
+	// Get the applications
+	apps, err := data.GetApplications(db, user_id)
+	if err != nil {
+		fmt.Println("Error getting applications:", err)
+		return
+	}
+	if len(apps) == 0 {
+		fmt.Println("No applications found.")
+		return
+	}
+	for _, app := range apps {
+		fmt.Println("\nName:", app.Name, "\nURL:", app.URL, "\nApplication ID:", app.ID)
+	}
+
+	// Prompt the user for the application ID
+	applicationID := getIntInput("\nEnter the application ID you want to get data for:")
+
+	// Get the application data
+	appData, err := data.GetApplicationData(db, user_id, strconv.Itoa(applicationID))
+	if err != nil {
+		fmt.Println("Error getting application data:", err)
+		return
+	}
+	if len(appData) == 0 {
+		fmt.Println("No data found for the application.")
+		return
+	}
+	for index, data := range appData {
+		fmt.Println("\nNo.", index, "\nUsername:", data.Username, "\nPassword:", data.Password)
+	}
+	fmt.Println("")
+
+}

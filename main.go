@@ -64,5 +64,7 @@ func main() {
 		application.AddNewPassword(db, user_id)
 	}
 	if choice == "read" {
+		application.ReadPasswords(db, user_id)
 	}
+	db.Close()
 }
