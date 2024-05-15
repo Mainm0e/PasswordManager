@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"passwordmanager/application/tools"
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -116,7 +117,7 @@ func OpenDatabaseConnection(dataBasePath string) (*sql.DB, error) {
 
 func RegisterAccount(db *sql.DB, username, password string) error {
 	// Hash the password
-	password = hashing(password)
+	password = tools.Hashing(password)
 
 	// Check if the username already exists
 	rows, err := db.Query("SELECT id FROM users WHERE username = ?", username)
@@ -147,7 +148,7 @@ func RegisterAccount(db *sql.DB, username, password string) error {
 
 func Login(db *sql.DB, username, password string) (string, error) {
 	// Hash the provided password
-	hashedPassword := hashing(password)
+	hashedPassword := tools.Hashing(password)
 
 	// SQL statement to query the database
 	rows, err := db.Query("SELECT id, username, password FROM users WHERE username = ?", username)
