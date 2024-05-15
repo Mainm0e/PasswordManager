@@ -15,8 +15,8 @@ type Application struct {
 type ApplicationData struct {
 	UserID        int
 	ApplicationID int
-	Username      string
-	Password      string
+	Username      []byte
+	Password      []byte
 	DataCreated   string
 	LastUpdated   string
 }

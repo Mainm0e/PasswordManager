@@ -5,9 +5,13 @@ import (
 	"log"
 	"passwordmanager/application"
 	"passwordmanager/application/data"
+	"passwordmanager/application/tools"
 )
 
 func main() {
+	var username string
+	var password string
+	var key string
 	db, err := data.OpenDatabaseConnection("passwordmanager.db")
 	if err != nil {
 		log.Fatal(err)
@@ -15,11 +19,9 @@ func main() {
 
 	// Asking Usernames and Passwords
 	fmt.Println("Enter your username:")
-	var username string
 	fmt.Scanln(&username)
 
 	fmt.Println("Enter your password:")
-	var password string
 	fmt.Scanln(&password)
 
 	user_id, err := data.Login(db, username, password)
@@ -55,16 +57,17 @@ func main() {
 		}
 	}
 	fmt.Println("Welcome", username, "!")
+	key, err = tools.GenerateKey(password, 32)
 
 	fmt.Println("Do you want to add a new Password or read your Passwords? (add/read)")
 	var choice string
 	fmt.Scanln(&choice)
 
 	if choice == "add" {
-		application.AddNewPassword(db, user_id)
+		application.AddNewPassword(db, user_id, key)
 	}
 	if choice == "read" {
-		application.ReadPasswords(db, user_id)
+		application.ReadPasswords(db, user_id, key)
 	}
 	db.Close()
 }

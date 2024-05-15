@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"passwordmanager/PassGenerator"
 	"passwordmanager/application/data"
+	"passwordmanager/application/tools"
 	"strconv"
 )
 
 // Todo: Encrypt new Passwords before saving them to the database
 // Key: 16 bytes long and Key is generated based on the user's hashed password
-func AddNewPassword(db *sql.DB, user_id string) {
+func AddNewPassword(db *sql.DB, user_id string, key string) {
 	var applicationName, applicationURL, username string
 	var passwordLength int
 	var applicationID int
@@ -82,8 +83,19 @@ func AddNewPassword(db *sql.DB, user_id string) {
 		choice := getInput("Do you want to save this password? (y/n)")
 
 		if choice == "y" {
+			// Encrypt the username and password
+			encryptedUsername, err := tools.Encrypt(username, key)
+			if err != nil {
+				fmt.Println("Error encrypting username:", err)
+				continue
+			}
+			encryptedPassword, err := tools.Encrypt(password, key)
+			if err != nil {
+				fmt.Println("Error encrypting password:", err)
+				continue
+			}
 			// Save the password
-			err := data.AddApplicationData(db, user_id, strconv.Itoa(applicationID), username, password)
+			err = data.AddApplicationData(db, user_id, strconv.Itoa(applicationID), encryptedUsername, encryptedPassword)
 			if err != nil {
 				fmt.Println("Error saving password:", err)
 				continue
@@ -122,7 +134,7 @@ func getIntInput(prompt string) int {
 }
 
 // GetApplicationData is function that user can read application account data from database
-func ReadPasswords(db *sql.DB, user_id string) {
+func ReadPasswords(db *sql.DB, user_id string, key string) {
 
 	// Get the applications
 	apps, err := data.GetApplications(db, user_id)

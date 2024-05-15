@@ -3,6 +3,7 @@ package application
 import (
 	"os/exec"
 	"passwordmanager/application/data"
+	"passwordmanager/application/tools"
 	"strconv"
 	"testing"
 )
@@ -55,8 +56,24 @@ func TestSetupTestCase(t *testing.T) {
 		t.Error(err)
 	}
 
+	key, err := tools.GenerateKey(password, 32)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Encrypt the username and password
+	encryptedUsername, err := tools.Encrypt(application_username, key)
+	if err != nil {
+		t.Error(err)
+	}
+
+	encryptedPassword, err := tools.Encrypt(application_password, key)
+	if err != nil {
+		t.Error(err)
+	}
+
 	// Add a test password for testing and applicationdata
-	err = data.AddApplicationData(db, user_id, strconv.Itoa(application_id), application_username, application_password)
+	err = data.AddApplicationData(db, user_id, strconv.Itoa(application_id), encryptedUsername, encryptedPassword)
 	if err != nil {
 		t.Error(err)
 	}
@@ -72,6 +89,11 @@ func TestGetApplicationData(t *testing.T) {
 	}
 
 	user_id, err := data.Login(db, username, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	key, err := tools.GenerateKey(password, 32)
 	if err != nil {
 		t.Error(err)
 	}
@@ -94,13 +116,21 @@ func TestGetApplicationData(t *testing.T) {
 		}
 
 		// check application name
+		decryptedUsername, err := tools.Decrypt(applicationData[0].Username, key)
+		if err != nil {
+			t.Error(err)
+		}
+		decryptedPassword, err := tools.Decrypt(applicationData[0].Password, key)
+		if err != nil {
+			t.Error(err)
+		}
 
-		if applicationData[0].Username != application_username {
+		if decryptedUsername != application_username {
 			t.Error("Expected username: ", application_username, " got ", applicationData[index].Username)
 		}
 
 		// check application password
-		if applicationData[0].Password != application_password {
+		if decryptedPassword != application_password {
 			t.Error("Expected password: ", application_password, " got ", applicationData[index].Password)
 		}
 	}

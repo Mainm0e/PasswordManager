@@ -82,8 +82,8 @@ func CreateDataBase(dataBasePath string) error {
         id INTEGER PRIMARY KEY,
         user_id INTEGER,
         application_id INTEGER,
-        username TEXT,
-        password TEXT,
+        username BLOB, -- Change data type to BLOB or VARBINARY
+        password BLOB, -- Change data type to BLOB or VARBINARY
 		create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id),
@@ -220,7 +220,7 @@ func AddApplication(db *sql.DB, userId, name, url string) (int, error) {
 	return int(lastInsertID), nil
 }
 
-func AddApplicationData(db *sql.DB, userId, applicationId, username, password string) error {
+func AddApplicationData(db *sql.DB, userId string, applicationId string, username []byte, password []byte) error {
 
 	// Check if the user with the provided userId exists
 	var userCount int
