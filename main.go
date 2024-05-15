@@ -9,6 +9,13 @@ import (
 )
 
 func main() {
+	// create a new database for testing
+	/* 	err := data.CreateDataBase("passwordmanager.db")
+	   	if err != nil {
+	   		log.Fatal("Error creating database: ", err)
+
+	   	} */
+
 	var username string
 	var password string
 	var key string
@@ -58,6 +65,10 @@ func main() {
 	}
 	fmt.Println("Welcome", username, "!")
 	key, err = tools.GenerateKey(password, 32)
+	if err != nil {
+		fmt.Println("Error generating key:", err)
+		return
+	}
 
 	fmt.Println("Do you want to add a new Password or read your Passwords? (add/read)")
 	var choice string

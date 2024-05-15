@@ -164,7 +164,18 @@ func ReadPasswords(db *sql.DB, user_id string, key string) {
 		return
 	}
 	for index, data := range appData {
-		fmt.Println("\nNo.", index, "\nUsername:", data.Username, "\nPassword:", data.Password)
+		// Decrypt the username and password
+		decryptedUsername, err := tools.Decrypt(data.Username, key)
+		if err != nil {
+			fmt.Println("Error decrypting username:", err)
+			continue
+		}
+		decryptedPassword, err := tools.Decrypt(data.Password, key)
+		if err != nil {
+			fmt.Println("Error decrypting password:", err)
+			continue
+		}
+		fmt.Println("\nNo.", index, "\nUsername:", decryptedUsername, "\nPassword:", decryptedPassword)
 	}
 	fmt.Println("")
 
